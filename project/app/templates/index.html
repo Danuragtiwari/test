@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Transcription App ---Question-1</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f1f1;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .transcription-container {
+            margin-bottom: 20px;
+        }
+        
+        .transcription-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .transcription-item {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        
+        .transcription-text {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .transcription-date {
+            color: #888;
+            font-size: 12px;
+        }
+        
+        .no-transcription {
+            text-align: center;
+            color: #888;
+        }
+        
+        .transcription-input {
+            text-align: center;
+        }
+        
+        .microphone-button {
+            background-color: #4caf50;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .microphone-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Transcription App</h1>
+        </div>
+
+        <div class="transcription-container">
+            <h2>Transcriptions</h2>
+            <ul class="transcription-list" id="transcription-list">
+                <li class="no-transcription" id="no-transcription">No active transcription</li>
+            </ul>
+        </div>
+
+        <div class="transcription-input">
+            <button class="microphone-button" id="microphone-button">Start Transcription</button>
+        </div>
+    </div>
+
+    <script>
+        const transcriptionList = document.getElementById('transcription-list');
+        const microphoneButton = document.getElementById('microphone-button');
+        const noTranscriptionMessage = document.getElementById('no-transcription');
+
+        let recognition;
+        let transcriptionTimeout;
+
+        // Function to create a transcription item in the list
+        function createTranscriptionItem(text, date) {
+            noTranscriptionMessage.style.display = 'none'; // Hide the "No active transcription" message
+
+            const li = document.createElement('li');
+            li.className = 'transcription-item';
+            li.innerHTML = `
+                <p class="transcription-text">${text}</p>
+                <p class="transcription-date">${date}</p>
+            `;
+
+            transcriptionList.appendChild(li);
+        }
+
+        // Function to handle transcription result
+        function handleTranscriptionResult(event) {
+            clearTimeout(transcriptionTimeout); // Clear the timeout
+
+            const text = Array.from(event.results)
+                .map(result => result[0])
+                .map(result => result.transcript)
+                .join('');
+
+            const date = new Date().toLocaleString();
+            createTranscriptionItem(text, date);
+
+            // Set a timeout to display "No active transcription" after 5 seconds
+            transcriptionTimeout = setTimeout(() => {
+                noTranscriptionMessage.style.display = 'block';
+            }, 5000);
+        }
+
+        // Function to start transcription
+        function startTranscription() {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = handleTranscriptionResult;
+            recognition.start();
+
+            microphoneButton.textContent = 'Stop Transcription';
+        }
+
+        // Function to stop transcription
+        function stopTranscription() {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+
+                microphoneButton.textContent = 'Start Transcription';
+            }
+        }
+
+        // Event listener for microphone button click
+        microphoneButton.addEventListener('click', function() {
+            if (recognition) {
+                stopTranscription();
+            } else {
+                startTranscription();
+            }
+        });
+    </script>
+</body>
+
+</html>
